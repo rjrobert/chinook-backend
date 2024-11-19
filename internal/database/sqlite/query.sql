@@ -2,5 +2,5 @@
 SELECT * FROM Album
 WHERE AlbumId=?;
 
--- name: ListAlbums :many
+-- name: GetAlbums :many
 SELECT * FROM Album;

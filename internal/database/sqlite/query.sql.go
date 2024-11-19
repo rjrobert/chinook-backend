@@ -21,12 +21,12 @@ func (q *Queries) GetAlbum(ctx context.Context, albumid int64) (Album, error) {
 	return i, err
 }
 
-const listAlbums = `-- name: ListAlbums :many
+const getAlbums = `-- name: GetAlbums :many
 SELECT albumid, title, artistid FROM Album
 `
 
-func (q *Queries) ListAlbums(ctx context.Context) ([]Album, error) {
-	rows, err := q.db.QueryContext(ctx, listAlbums)
+func (q *Queries) GetAlbums(ctx context.Context) ([]Album, error) {
+	rows, err := q.db.QueryContext(ctx, getAlbums)
 	if err != nil {
 		return nil, err
 	}

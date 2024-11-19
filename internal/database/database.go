@@ -1,6 +1,7 @@
 package database
 
 import (
+	"backend/internal/database/sqlite"
 	"context"
 	"database/sql"
 	"fmt"
@@ -22,10 +23,14 @@ type Service interface {
 	// Close terminates the database connection.
 	// It returns an error if the connection cannot be closed.
 	Close() error
+
+	GetAlbums(ctx context.Context) ([]sqlite.Album, error)
+	GetAlbum(ctx context.Context) (*sqlite.Album, error)
 }
 
 type service struct {
-	db *sql.DB
+	db      *sql.DB
+	queries *sqlite.Queries
 }
 
 var (
@@ -45,11 +50,35 @@ func New() Service {
 		// another initialization error.
 		log.Fatal(err)
 	}
+	queries := sqlite.New(db)
 
 	dbInstance = &service{
-		db: db,
+		db:      db,
+		queries: queries,
 	}
 	return dbInstance
+}
+
+func (s *service) GetAlbum(ctx context.Context) (*sqlite.Album, error) {
+	albumIdStr := ctx.Value("albumId")
+	albumId, err := strconv.ParseInt(albumIdStr.(string), 0, 64)
+	if err != nil {
+		return nil, fmt.Errorf("getting albumId: %w", err)
+	}
+
+	album, err := s.queries.GetAlbum(ctx, albumId)
+	if err != nil {
+		return nil, fmt.Errorf("getting album: %w", err)
+	}
+	return &album, nil
+}
+
+func (s *service) GetAlbums(ctx context.Context) ([]sqlite.Album, error) {
+	albums, err := s.queries.GetAlbums(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("getting albums: %w", err)
+	}
+	return albums, nil
 }
 
 // Health checks the health of the database connection by pinging the database.
