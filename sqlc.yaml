@@ -1,0 +1,15 @@
+version: "2"
+sql:
+  - engine: "sqlite"
+    queries: "internal/database/sqlite/query.sql"
+    schema: "internal/database/sqlite/migrations"
+    # schema: "schema.sql"
+    gen:
+      go:
+        package: "sqlite"
+        out: "internal/database/sqlite"
+        emit_pointers_for_null_types: true
+        emit_json_tags: true
+        overrides:
+          - db_type: "NUMERIC(10,2)"
+            go_type: "float32"

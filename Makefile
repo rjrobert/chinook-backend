@@ -6,8 +6,8 @@ all: build test
 build:
 	@echo "Building..."
 	
-	
-	@CGO_ENABLED=1 GOOS=linux go build -o main cmd/api/main.go
+	@goose sqlite3 db/chinook.db -dir internal/database/sqlite/migrations up
+	@go build -o main cmd/api/main.go
 
 # Run the application
 run:
