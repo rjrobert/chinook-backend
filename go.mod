@@ -1,4 +1,4 @@
-module backend
+module github.com/rjrobert/chinook-music/backend
 
 go 1.23.3
 

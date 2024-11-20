@@ -9,7 +9,7 @@ import (
 	"syscall"
 	"time"
 
-	"backend/internal/server"
+	"github.com/rjrobert/chinook-music/backend/internal/server"
 )
 
 func gracefulShutdown(apiServer *http.Server, done chan bool) {

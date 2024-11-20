@@ -9,7 +9,7 @@ import (
 
 	_ "github.com/joho/godotenv/autoload"
 
-	"backend/internal/repository"
+	"github.com/rjrobert/chinook-music/backend/internal/repository"
 )
 
 type Server struct {

@@ -12,7 +12,7 @@ import (
 	_ "github.com/joho/godotenv/autoload"
 	_ "github.com/mattn/go-sqlite3"
 
-	"backend/internal/repository/database"
+	"github.com/rjrobert/chinook-music/backend/internal/repository/database"
 )
 
 // Service represents a service that interacts with a database.
