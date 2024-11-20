@@ -1,53 +1,15 @@
-# Project backend
+# Project Chinook-Music Backend
 
-One Paragraph of project description goes here
+A backend API project written in Go to serve the [Chinook Database](https://github.com/lerocha/chinook-database), which represents a digital music store. A frontend will also be created to consume the API endpoints created in this project. 
 
-## Getting Started
+The main goal of this project is to allow me to practice writing an app using Go.
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
-
-## MakeFile
-
-Run build make command with tests
-```bash
-make all
-```
-
-Build the application
-```bash
-make build
-```
-
-Run the application
-```bash
-make run
-```
-Create DB container
-```bash
-make docker-run
-```
-
-Shutdown DB Container
-```bash
-make docker-down
-```
-
-DB Integrations Test:
-```bash
-make itest
-```
-
-Live reload the application:
-```bash
-make watch
-```
-
-Run the test suite:
-```bash
-make test
-```
-
-Clean up binary from the last build:
-```bash
-make clean
-```
+## Technologies Used
+- Language: [Go](https://go.dev)
+- Initial Project Creation: [Go-Blueprint](https://github.com/Melkeydev/go-blueprint)
+- Live Reload: [Air](https://github.com/air-verse/air)
+- Sample Data Model: [Chinook Database](https://github.com/lerocha/chinook-database)
+- Generate type-safe code from SQL Queries: [sqlc](https://sqlc.dev/)
+- Database Migrations: [Goose](https://pressly.github.io/goose/)
+- Web Framework: [Echo](https://echo.labstack.com/)
+- Probably will be hosting on [Fly.io](https://fly.io)
