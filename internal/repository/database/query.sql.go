@@ -21,12 +21,13 @@ func (q *Queries) GetAlbum(ctx context.Context, albumid int64) (Album, error) {
 	return i, err
 }
 
-const getAlbums = `-- name: GetAlbums :many
+const getAlbumsByArtist = `-- name: GetAlbumsByArtist :many
 SELECT albumid, title, artistid FROM Album
+WHERE ArtistId=?
 `
 
-func (q *Queries) GetAlbums(ctx context.Context) ([]Album, error) {
-	rows, err := q.db.QueryContext(ctx, getAlbums)
+func (q *Queries) GetAlbumsByArtist(ctx context.Context, artistid int64) ([]Album, error) {
+	rows, err := q.db.QueryContext(ctx, getAlbumsByArtist, artistid)
 	if err != nil {
 		return nil, err
 	}
@@ -35,6 +36,226 @@ func (q *Queries) GetAlbums(ctx context.Context) ([]Album, error) {
 	for rows.Next() {
 		var i Album
 		if err := rows.Scan(&i.Albumid, &i.Title, &i.Artistid); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getAllAlbums = `-- name: GetAllAlbums :many
+SELECT albumid, title, artistid FROM Album
+`
+
+func (q *Queries) GetAllAlbums(ctx context.Context) ([]Album, error) {
+	rows, err := q.db.QueryContext(ctx, getAllAlbums)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Album
+	for rows.Next() {
+		var i Album
+		if err := rows.Scan(&i.Albumid, &i.Title, &i.Artistid); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getArtist = `-- name: GetArtist :one
+SELECT artistid, name FROM Artist
+WHERE ArtistId=?
+`
+
+func (q *Queries) GetArtist(ctx context.Context, artistid int64) (Artist, error) {
+	row := q.db.QueryRowContext(ctx, getArtist, artistid)
+	var i Artist
+	err := row.Scan(&i.Artistid, &i.Name)
+	return i, err
+}
+
+const getArtists = `-- name: GetArtists :many
+SELECT artistid, name FROM Artist
+`
+
+func (q *Queries) GetArtists(ctx context.Context) ([]Artist, error) {
+	rows, err := q.db.QueryContext(ctx, getArtists)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Artist
+	for rows.Next() {
+		var i Artist
+		if err := rows.Scan(&i.Artistid, &i.Name); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getPlaylistTracks = `-- name: GetPlaylistTracks :many
+SELECT t.TrackId, t.Name, mt.Name 'Media Type', g.Name 'Genre',
+        t.Composer, t.Milliseconds, t.Bytes, t.UnitPrice
+FROM PlaylistTrack pt
+JOIN Track t ON t.TrackId=pt.TrackId
+JOIN MediaType mt ON mt.MediaTypeId=t.MediaTypeId
+JOIN Genre g ON g.GenreId=t.GenreId
+WHERE pt.PlaylistId=?
+`
+
+type GetPlaylistTracksRow struct {
+	Trackid      int64   `json:"trackid"`
+	Name         string  `json:"name"`
+	MediaType    *string `json:"'media type'"`
+	Genre        *string `json:"'genre'"`
+	Composer     *string `json:"composer"`
+	Milliseconds int64   `json:"milliseconds"`
+	Bytes        *int64  `json:"bytes"`
+	Unitprice    float32 `json:"unitprice"`
+}
+
+func (q *Queries) GetPlaylistTracks(ctx context.Context, playlistid int64) ([]GetPlaylistTracksRow, error) {
+	rows, err := q.db.QueryContext(ctx, getPlaylistTracks, playlistid)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetPlaylistTracksRow
+	for rows.Next() {
+		var i GetPlaylistTracksRow
+		if err := rows.Scan(
+			&i.Trackid,
+			&i.Name,
+			&i.MediaType,
+			&i.Genre,
+			&i.Composer,
+			&i.Milliseconds,
+			&i.Bytes,
+			&i.Unitprice,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getPlaylists = `-- name: GetPlaylists :many
+SELECT playlistid, name FROM Playlist
+`
+
+func (q *Queries) GetPlaylists(ctx context.Context) ([]Playlist, error) {
+	rows, err := q.db.QueryContext(ctx, getPlaylists)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Playlist
+	for rows.Next() {
+		var i Playlist
+		if err := rows.Scan(&i.Playlistid, &i.Name); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getTrackDetails = `-- name: GetTrackDetails :one
+SELECT trackid, name, albumid, mediatypeid, genreid, composer, milliseconds, bytes, unitprice FROM Track
+WHERE TrackID=?
+`
+
+func (q *Queries) GetTrackDetails(ctx context.Context, trackid int64) (Track, error) {
+	row := q.db.QueryRowContext(ctx, getTrackDetails, trackid)
+	var i Track
+	err := row.Scan(
+		&i.Trackid,
+		&i.Name,
+		&i.Albumid,
+		&i.Mediatypeid,
+		&i.Genreid,
+		&i.Composer,
+		&i.Milliseconds,
+		&i.Bytes,
+		&i.Unitprice,
+	)
+	return i, err
+}
+
+const getTracksByAlbum = `-- name: GetTracksByAlbum :many
+SELECT t.TrackId, t.Name, mt.Name 'Media Type', g.Name 'Genre',
+        t.Composer, t.Milliseconds, t.Bytes, t.UnitPrice
+FROM Track t
+JOIN MediaType mt ON mt.MediaTypeId=t.MediaTypeId
+JOIN Genre g ON g.GenreId=t.GenreId
+WHERE t.AlbumId=?
+`
+
+type GetTracksByAlbumRow struct {
+	Trackid      int64   `json:"trackid"`
+	Name         string  `json:"name"`
+	MediaType    *string `json:"'media type'"`
+	Genre        *string `json:"'genre'"`
+	Composer     *string `json:"composer"`
+	Milliseconds int64   `json:"milliseconds"`
+	Bytes        *int64  `json:"bytes"`
+	Unitprice    float32 `json:"unitprice"`
+}
+
+func (q *Queries) GetTracksByAlbum(ctx context.Context, albumid *int64) ([]GetTracksByAlbumRow, error) {
+	rows, err := q.db.QueryContext(ctx, getTracksByAlbum, albumid)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetTracksByAlbumRow
+	for rows.Next() {
+		var i GetTracksByAlbumRow
+		if err := rows.Scan(
+			&i.Trackid,
+			&i.Name,
+			&i.MediaType,
+			&i.Genre,
+			&i.Composer,
+			&i.Milliseconds,
+			&i.Bytes,
+			&i.Unitprice,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

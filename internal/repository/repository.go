@@ -25,8 +25,14 @@ type Service interface {
 	// It returns an error if the connection cannot be closed.
 	Close() error
 
-	GetAlbums(ctx context.Context) ([]database.Album, error)
-	GetAlbum(ctx context.Context) (*database.Album, error)
+	GetArtists(ctx context.Context) ([]database.Artist, error)
+	GetArtist(ctx context.Context, artistId int64) (*database.Artist, error)
+	GetAllAlbums(ctx context.Context) ([]database.Album, error)
+	GetAlbum(ctx context.Context, albumId int64) (*database.Album, error)
+	GetAlbumsByArtist(ctx context.Context, artistId int64) ([]database.Album, error)
+	GetTracksByAlbum(ctx context.Context, albumId int64) ([]database.GetTracksByAlbumRow, error)
+	GetPlaylists(ctx context.Context) ([]database.Playlist, error)
+	GetPlayListTracks(ctx context.Context, playlistId int64) ([]database.GetPlaylistTracksRow, error)
 }
 
 type service struct {
@@ -60,13 +66,31 @@ func New() Service {
 	return dbInstance
 }
 
-func (s *service) GetAlbum(ctx context.Context) (*database.Album, error) {
-	albumIdStr := ctx.Value("albumId")
-	albumId, err := strconv.ParseInt(albumIdStr.(string), 0, 64)
+func (s *service) GetArtists(ctx context.Context) ([]database.Artist, error) {
+	artists, err := s.queries.GetArtists(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("getting albumId: %w", err)
+		return nil, fmt.Errorf("getting albums: %w", err)
 	}
+	return artists, nil
+}
 
+func (s *service) GetArtist(ctx context.Context, artistId int64) (*database.Artist, error) {
+	artist, err := s.queries.GetArtist(ctx, artistId)
+	if err != nil {
+		return nil, fmt.Errorf("getting artist: %w", err)
+	}
+	return &artist, nil
+}
+
+func (s *service) GetAllAlbums(ctx context.Context) ([]database.Album, error) {
+	albums, err := s.queries.GetAllAlbums(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("getting albums: %w", err)
+	}
+	return albums, nil
+}
+
+func (s *service) GetAlbum(ctx context.Context, albumId int64) (*database.Album, error) {
 	album, err := s.queries.GetAlbum(ctx, albumId)
 	if err != nil {
 		return nil, fmt.Errorf("getting album: %w", err)
@@ -74,12 +98,36 @@ func (s *service) GetAlbum(ctx context.Context) (*database.Album, error) {
 	return &album, nil
 }
 
-func (s *service) GetAlbums(ctx context.Context) ([]database.Album, error) {
-	albums, err := s.queries.GetAlbums(ctx)
+func (s *service) GetAlbumsByArtist(ctx context.Context, artistId int64) ([]database.Album, error) {
+	albums, err := s.queries.GetAlbumsByArtist(ctx, artistId)
 	if err != nil {
-		return nil, fmt.Errorf("getting albums: %w", err)
+		return nil, fmt.Errorf("getting albums by artist: %w", err)
 	}
 	return albums, nil
+}
+
+func (s *service) GetTracksByAlbum(ctx context.Context, albumId int64) ([]database.GetTracksByAlbumRow, error) {
+	tracks, err := s.queries.GetTracksByAlbum(ctx, &albumId)
+	if err != nil {
+		return nil, fmt.Errorf("getting tracks by album: %w", err)
+	}
+	return tracks, nil
+}
+
+func (s *service) GetPlaylists(ctx context.Context) ([]database.Playlist, error) {
+	playlists, err := s.queries.GetPlaylists(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("getting playlists: %w", err)
+	}
+	return playlists, nil
+}
+
+func (s *service) GetPlayListTracks(ctx context.Context, playlistId int64) ([]database.GetPlaylistTracksRow, error) {
+	tracks, err := s.queries.GetPlaylistTracks(ctx, playlistId)
+	if err != nil {
+		return nil, fmt.Errorf("getting playlist tracks: %w", err)
+	}
+	return tracks, nil
 }
 
 // Health checks the health of the database connection by pinging the database.
