@@ -1,7 +1,6 @@
-package database
+package repository
 
 import (
-	"backend/internal/database/sqlite"
 	"context"
 	"database/sql"
 	"fmt"
@@ -12,6 +11,8 @@ import (
 
 	_ "github.com/joho/godotenv/autoload"
 	_ "github.com/mattn/go-sqlite3"
+
+	"backend/internal/repository/database"
 )
 
 // Service represents a service that interacts with a database.
@@ -24,13 +25,13 @@ type Service interface {
 	// It returns an error if the connection cannot be closed.
 	Close() error
 
-	GetAlbums(ctx context.Context) ([]sqlite.Album, error)
-	GetAlbum(ctx context.Context) (*sqlite.Album, error)
+	GetAlbums(ctx context.Context) ([]database.Album, error)
+	GetAlbum(ctx context.Context) (*database.Album, error)
 }
 
 type service struct {
 	db      *sql.DB
-	queries *sqlite.Queries
+	queries *database.Queries
 }
 
 var (
@@ -50,7 +51,7 @@ func New() Service {
 		// another initialization error.
 		log.Fatal(err)
 	}
-	queries := sqlite.New(db)
+	queries := database.New(db)
 
 	dbInstance = &service{
 		db:      db,
@@ -59,7 +60,7 @@ func New() Service {
 	return dbInstance
 }
 
-func (s *service) GetAlbum(ctx context.Context) (*sqlite.Album, error) {
+func (s *service) GetAlbum(ctx context.Context) (*database.Album, error) {
 	albumIdStr := ctx.Value("albumId")
 	albumId, err := strconv.ParseInt(albumIdStr.(string), 0, 64)
 	if err != nil {
@@ -73,7 +74,7 @@ func (s *service) GetAlbum(ctx context.Context) (*sqlite.Album, error) {
 	return &album, nil
 }
 
-func (s *service) GetAlbums(ctx context.Context) ([]sqlite.Album, error) {
+func (s *service) GetAlbums(ctx context.Context) ([]database.Album, error) {
 	albums, err := s.queries.GetAlbums(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("getting albums: %w", err)

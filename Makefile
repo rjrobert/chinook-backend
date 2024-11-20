@@ -6,7 +6,7 @@ all: build test
 build:
 	@echo "Building..."
 	
-	@goose sqlite3 db/chinook.db -dir internal/database/sqlite/migrations up
+	@goose sqlite3 db/chinook.db -dir db/migrations up
 	@go build -o main cmd/api/main.go
 
 # Run the application
