@@ -33,6 +33,12 @@ type Service interface {
 	GetTracksByAlbum(ctx context.Context, albumId int64) ([]database.GetTracksByAlbumRow, error)
 	GetPlaylists(ctx context.Context) ([]database.Playlist, error)
 	GetPlayListTracks(ctx context.Context, playlistId int64) ([]database.GetPlaylistTracksRow, error)
+	GetGenres(ctx context.Context) ([]database.Genre, error)
+	GetMediaTypes(ctx context.Context) ([]database.MediaType, error)
+	GetCustomerInvoices(ctx context.Context, customerId int64) ([]database.Invoice, error)
+	GetInvoiceDetails(ctx context.Context, invoiceId int64) ([]database.InvoiceLine, error)
+	GetCustomers(ctx context.Context) ([]database.Customer, error)
+	CreateCustomer(ctx context.Context, arg database.CreateCustomerParams) (*database.Customer, error)
 }
 
 type service struct {
@@ -128,6 +134,54 @@ func (s *service) GetPlayListTracks(ctx context.Context, playlistId int64) ([]da
 		return nil, fmt.Errorf("getting playlist tracks: %w", err)
 	}
 	return tracks, nil
+}
+
+func (s *service) GetGenres(ctx context.Context) ([]database.Genre, error) {
+	genres, err := s.queries.GetGenres(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("getting genre: %w", err)
+	}
+	return genres, nil
+}
+
+func (s *service) GetMediaTypes(ctx context.Context) ([]database.MediaType, error) {
+	mediaTypes, err := s.queries.GetMediaTypes(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("getting media types: %w", err)
+	}
+	return mediaTypes, nil
+}
+
+func (s *service) GetCustomerInvoices(ctx context.Context, customerId int64) ([]database.Invoice, error) {
+	invoices, err := s.queries.GetCustomerInvoices(ctx, customerId)
+	if err != nil {
+		return nil, fmt.Errorf("getting invoices: %w", err)
+	}
+	return invoices, nil
+}
+
+func (s *service) GetInvoiceDetails(ctx context.Context, invoiceId int64) ([]database.InvoiceLine, error) {
+	invoiceLines, err := s.queries.GetInvoiceLines(ctx, invoiceId)
+	if err != nil {
+		return nil, fmt.Errorf("getting invoice details: %w", err)
+	}
+	return invoiceLines, nil
+}
+
+func (s *service) GetCustomers(ctx context.Context) ([]database.Customer, error) {
+	customers, err := s.queries.GetCustomers(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("getting customers: %w", err)
+	}
+	return customers, nil
+}
+
+func (s *service) CreateCustomer(ctx context.Context, arg database.CreateCustomerParams) (*database.Customer, error) {
+	customers, err := s.queries.CreateCustomer(ctx, arg)
+	if err != nil {
+		return nil, fmt.Errorf("getting customers: %w", err)
+	}
+	return &customers, nil
 }
 
 // Health checks the health of the database connection by pinging the database.

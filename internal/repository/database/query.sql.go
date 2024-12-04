@@ -9,6 +9,39 @@ import (
 	"context"
 )
 
+const createCustomer = `-- name: CreateCustomer :one
+INSERT INTO Customer (FirstName, LastName, Email)
+VALUES (?, ?, ?)
+RETURNING customerid, firstname, lastname, company, address, city, state, country, postalcode, phone, fax, email, supportrepid
+`
+
+type CreateCustomerParams struct {
+	Firstname string `json:"firstname"`
+	Lastname  string `json:"lastname"`
+	Email     string `json:"email"`
+}
+
+func (q *Queries) CreateCustomer(ctx context.Context, arg CreateCustomerParams) (Customer, error) {
+	row := q.db.QueryRowContext(ctx, createCustomer, arg.Firstname, arg.Lastname, arg.Email)
+	var i Customer
+	err := row.Scan(
+		&i.Customerid,
+		&i.Firstname,
+		&i.Lastname,
+		&i.Company,
+		&i.Address,
+		&i.City,
+		&i.State,
+		&i.Country,
+		&i.Postalcode,
+		&i.Phone,
+		&i.Fax,
+		&i.Email,
+		&i.Supportrepid,
+	)
+	return i, err
+}
+
 const getAlbum = `-- name: GetAlbum :one
 SELECT albumid, title, artistid FROM Album
 WHERE AlbumId=?
@@ -115,6 +148,178 @@ func (q *Queries) GetArtists(ctx context.Context) ([]Artist, error) {
 	return items, nil
 }
 
+const getCustomerInvoices = `-- name: GetCustomerInvoices :many
+SELECT invoiceid, customerid, invoicedate, billingaddress, billingcity, billingstate, billingcountry, billingpostalcode, total
+FROM Invoice
+WHERE CustomerId=?
+`
+
+func (q *Queries) GetCustomerInvoices(ctx context.Context, customerid int64) ([]Invoice, error) {
+	rows, err := q.db.QueryContext(ctx, getCustomerInvoices, customerid)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Invoice
+	for rows.Next() {
+		var i Invoice
+		if err := rows.Scan(
+			&i.Invoiceid,
+			&i.Customerid,
+			&i.Invoicedate,
+			&i.Billingaddress,
+			&i.Billingcity,
+			&i.Billingstate,
+			&i.Billingcountry,
+			&i.Billingpostalcode,
+			&i.Total,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getCustomers = `-- name: GetCustomers :many
+SELECT customerid, firstname, lastname, company, address, city, state, country, postalcode, phone, fax, email, supportrepid
+FROM Customer
+`
+
+func (q *Queries) GetCustomers(ctx context.Context) ([]Customer, error) {
+	rows, err := q.db.QueryContext(ctx, getCustomers)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Customer
+	for rows.Next() {
+		var i Customer
+		if err := rows.Scan(
+			&i.Customerid,
+			&i.Firstname,
+			&i.Lastname,
+			&i.Company,
+			&i.Address,
+			&i.City,
+			&i.State,
+			&i.Country,
+			&i.Postalcode,
+			&i.Phone,
+			&i.Fax,
+			&i.Email,
+			&i.Supportrepid,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getGenres = `-- name: GetGenres :many
+SELECT genreid, name
+FROM Genre
+`
+
+func (q *Queries) GetGenres(ctx context.Context) ([]Genre, error) {
+	rows, err := q.db.QueryContext(ctx, getGenres)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Genre
+	for rows.Next() {
+		var i Genre
+		if err := rows.Scan(&i.Genreid, &i.Name); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getInvoiceLines = `-- name: GetInvoiceLines :many
+SELECT invoicelineid, invoiceid, trackid, unitprice, quantity
+FROM InvoiceLine
+WHERE InvoiceId=?
+`
+
+func (q *Queries) GetInvoiceLines(ctx context.Context, invoiceid int64) ([]InvoiceLine, error) {
+	rows, err := q.db.QueryContext(ctx, getInvoiceLines, invoiceid)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []InvoiceLine
+	for rows.Next() {
+		var i InvoiceLine
+		if err := rows.Scan(
+			&i.Invoicelineid,
+			&i.Invoiceid,
+			&i.Trackid,
+			&i.Unitprice,
+			&i.Quantity,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getMediaTypes = `-- name: GetMediaTypes :many
+SELECT mediatypeid, name 
+FROM MediaType
+`
+
+func (q *Queries) GetMediaTypes(ctx context.Context) ([]MediaType, error) {
+	rows, err := q.db.QueryContext(ctx, getMediaTypes)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []MediaType
+	for rows.Next() {
+		var i MediaType
+		if err := rows.Scan(&i.Mediatypeid, &i.Name); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getPlaylistTracks = `-- name: GetPlaylistTracks :many
 SELECT t.TrackId, t.Name, mt.Name 'Media Type', g.Name 'Genre',
         t.Composer, t.Milliseconds, t.Bytes, t.UnitPrice
@@ -193,28 +398,6 @@ func (q *Queries) GetPlaylists(ctx context.Context) ([]Playlist, error) {
 		return nil, err
 	}
 	return items, nil
-}
-
-const getTrackDetails = `-- name: GetTrackDetails :one
-SELECT trackid, name, albumid, mediatypeid, genreid, composer, milliseconds, bytes, unitprice FROM Track
-WHERE TrackID=?
-`
-
-func (q *Queries) GetTrackDetails(ctx context.Context, trackid int64) (Track, error) {
-	row := q.db.QueryRowContext(ctx, getTrackDetails, trackid)
-	var i Track
-	err := row.Scan(
-		&i.Trackid,
-		&i.Name,
-		&i.Albumid,
-		&i.Mediatypeid,
-		&i.Genreid,
-		&i.Composer,
-		&i.Milliseconds,
-		&i.Bytes,
-		&i.Unitprice,
-	)
-	return i, err
 }
 
 const getTracksByAlbum = `-- name: GetTracksByAlbum :many

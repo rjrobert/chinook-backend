@@ -35,3 +35,30 @@ JOIN Track t ON t.TrackId=pt.TrackId
 JOIN MediaType mt ON mt.MediaTypeId=t.MediaTypeId
 JOIN Genre g ON g.GenreId=t.GenreId
 WHERE pt.PlaylistId=?;
+
+-- name: GetGenres :many
+SELECT *
+FROM Genre;
+
+-- name: GetMediaTypes :many
+SELECT * 
+FROM MediaType;
+
+-- name: GetCustomers :many
+SELECT *
+FROM Customer;
+
+-- name: CreateCustomer :one
+INSERT INTO Customer (FirstName, LastName, Company, Address, City, State, Country, PostalCode, Phone, Fax, Email, SupportRepId)
+VALUES (?, ?, ?)
+RETURNING *;
+
+-- name: GetCustomerInvoices :many
+SELECT *
+FROM Invoice
+WHERE CustomerId=?;
+
+-- name: GetInvoiceLines :many
+SELECT *
+FROM InvoiceLine
+WHERE InvoiceId=?;
